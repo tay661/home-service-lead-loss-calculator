@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Plumbing Lead Loss Calculator</title>
+<meta name="description" content="Estimate how much revenue may be sitting inside missed or poorly followed-up leads.">
+<style>
+:root{
+  --bg:#090c10;--panel:#121821;--panel2:#171f2a;--line:#253140;
+  --text:#f5f7fa;--muted:#9ca9b8;--accent:#d8ff48;--good:#32d583;
+  --warn:#f5b942;--danger:#ff6b6b;--input:#0e141c;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:
+  radial-gradient(circle at 15% 0%,rgba(86,113,255,.16),transparent 34%),
+  radial-gradient(circle at 90% 20%,rgba(216,255,72,.08),transparent 28%),
+  var(--bg);
+  color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+}
+.wrap{max-width:1050px;margin:0 auto;padding:20px 16px 48px}
+.badge{display:inline-flex;gap:8px;align-items:center;border:1px solid #334053;border-radius:999px;padding:7px 11px;color:#ccd4df;font-size:12px;background:#0e141b}
+.hero{padding:28px 0 18px}
+h1{font-size:clamp(34px,7vw,62px);line-height:.98;letter-spacing:-.04em;margin:14px 0 14px;max-width:900px}
+.hero p{color:var(--muted);font-size:18px;line-height:1.55;max-width:760px;margin:0}
+.grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:18px;margin-top:18px}
+.card{background:rgba(18,24,33,.94);border:1px solid var(--line);border-radius:22px;padding:20px;box-shadow:0 25px 70px rgba(0,0,0,.25)}
+.card h2{margin:0 0 4px;font-size:20px}
+.sub{color:var(--muted);font-size:13px;line-height:1.45}
+.field{margin-top:17px}
+label{display:flex;justify-content:space-between;gap:10px;font-size:14px;font-weight:700;margin-bottom:8px}
+label span{color:var(--muted);font-weight:500;font-size:12px}
+.inputrow{display:flex;align-items:center;background:var(--input);border:1px solid #2d3949;border-radius:14px;overflow:hidden}
+.prefix,.suffix{padding:13px;color:#aeb8c5;background:#111823}
+input{width:100%;background:transparent;border:0;outline:0;color:white;font-size:17px;padding:13px 12px;font-weight:700}
+.range{width:100%;margin-top:8px;accent-color:#d8ff48}
+.results{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.metric{padding:15px;border:1px solid var(--line);border-radius:16px;background:var(--panel2)}
+.metric .k{color:var(--muted);font-size:12px}
+.metric .v{font-size:28px;font-weight:850;letter-spacing:-.04em;margin-top:3px}
+.metric.big{grid-column:1/-1;background:linear-gradient(140deg,#1a2312,#172018);border-color:#40502d}
+.metric.big .v{font-size:42px;color:#eaff9a}
+.note{margin-top:12px;color:#7f8b99;font-size:11px;line-height:1.5}
+.bar{height:10px;background:#222c38;border-radius:99px;overflow:hidden;margin-top:8px}
+.bar>div{height:100%;background:linear-gradient(90deg,#f5b942,#d8ff48);width:0%;transition:.3s}
+.steps{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;margin-top:18px}
+.step{padding:14px;border:1px solid var(--line);border-radius:15px;background:#111720}
+.step b{display:block;color:var(--accent);font-size:12px;margin-bottom:6px}
+.step span{font-size:13px;line-height:1.35}
+.cta{margin-top:18px;background:linear-gradient(145deg,#161e26,#1d281a);border:1px solid #3d4b2e;border-radius:22px;padding:20px}
+.cta h3{margin:0 0 7px;font-size:24px}
+.options{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.option{border:1px solid #334052;border-radius:16px;padding:14px;background:#10161d}
+.option strong{font-size:17px}
+.price{font-size:25px;font-weight:850;margin:6px 0}
+.option p{color:var(--muted);font-size:12px;line-height:1.4;min-height:48px}
+button{width:100%;border:0;border-radius:12px;padding:11px 12px;font-weight:800;cursor:pointer}
+.primary{background:var(--accent);color:#0b0e10}
+.secondary{background:#232c37;color:#fff;border:1px solid #364354}
+.copymsg{display:none;margin-top:10px;color:#b8c58a;font-size:12px}
+footer{text-align:center;color:#657180;font-size:11px;margin-top:24px}
+@media(max-width:800px){
+  .grid{grid-template-columns:1fr}.steps{grid-template-columns:1fr}.options{grid-template-columns:1fr}
+  .results{grid-template-columns:1fr 1fr}.metric.big .v{font-size:36px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <section class="hero">
+    <div class="badge">FREE TOOL · PLUMBING COMPANIES</div>
+    <h1>How much plumbing revenue could be hiding in missed leads?</h1>
+    <p>Use your own plumbing numbers to estimate the value of emergency, repair, repipe, and estimate inquiries that are missed, delayed, or never followed up. No guarantees — just a transparent scenario based on your inputs.</p>
+  </section>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Your numbers</h2>
+      <div class="sub">Adjust the inputs to match your business.</div>
+
+      <div class="field">
+        <label>New leads per month <span>all inbound leads</span></label>
+        <div class="inputrow"><input id="leads" type="number" min="0" value="160"></div>
+      </div>
+
+      <div class="field">
+        <label>Leads missed / poorly followed-up <span>estimate</span></label>
+        <div class="inputrow"><input id="missed" type="number" min="0" max="100" value="25"><div class="suffix">%</div></div>
+        <input class="range" id="missedRange" type="range" min="0" max="80" value="25">
+      </div>
+
+      <div class="field">
+        <label>Average job value <span>your typical ticket</span></label>
+        <div class="inputrow"><div class="prefix">$</div><input id="job" type="number" min="0" value="1800"></div>
+      </div>
+
+      <div class="field">
+        <label>Close rate on recovered leads <span>scenario assumption</span></label>
+        <div class="inputrow"><input id="close" type="number" min="0" max="100" value="25"><div class="suffix">%</div></div>
+        <input class="range" id="closeRange" type="range" min="0" max="100" value="25">
+      </div>
+
+      <div class="field">
+        <label>Share of missed leads you could recover <span>scenario assumption</span></label>
+        <div class="inputrow"><input id="recovery" type="number" min="0" max="100" value="40"><div class="suffix">%</div></div>
+        <input class="range" id="recoveryRange" type="range" min="0" max="100" value="40">
+      </div>
+
+      <div class="field">
+        <label>Cost per lead <span>optional</span></label>
+        <div class="inputrow"><div class="prefix">$</div><input id="cpl" type="number" min="0" value="60"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Estimated opportunity</h2>
+      <div class="sub">Calculated from the assumptions you entered.</div>
+      <div class="results">
+        <div class="metric"><div class="k">Leads at risk / month</div><div class="v" id="riskLeads">0</div></div>
+        <div class="metric"><div class="k">Potentially recovered leads</div><div class="v" id="recoveredLeads">0</div></div>
+        <div class="metric"><div class="k">Estimated recovered jobs</div><div class="v" id="jobs">0</div></div>
+        <div class="metric"><div class="k">Ad spend tied to at-risk leads</div><div class="v" id="waste">$0</div></div>
+        <div class="metric big">
+          <div class="k">Estimated monthly revenue opportunity</div>
+          <div class="v" id="monthly">$0</div>
+          <div class="bar"><div id="bar"></div></div>
+        </div>
+        <div class="metric big">
+          <div class="k">Estimated annual revenue opportunity</div>
+          <div class="v" id="annual">$0</div>
+        </div>
+      </div>
+      <div class="note">This calculator is for scenario planning only. It does not guarantee bookings, revenue, close rate, or recovery rate. Real results depend on lead quality, offer, market, response process, team performance, and other factors.</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:18px">
+    <h2>5-step lead recovery system</h2>
+    <div class="sub">The operational fixes behind the calculator.</div>
+    <div class="steps">
+      <div class="step"><b>01</b><span>Respond instantly to every new lead.</span></div>
+      <div class="step"><b>02</b><span>Qualify with a small set of business-specific questions.</span></div>
+      <div class="step"><b>03</b><span>Follow up automatically when the lead goes quiet.</span></div>
+      <div class="step"><b>04</b><span>Move qualified leads directly toward a booked appointment.</span></div>
+      <div class="step"><b>05</b><span>Track missed, recovered, booked, and won leads every week.</span></div>
+    </div>
+  </div>
+
+  <section class="cta">
+    <h3>Want the system behind the numbers?</h3>
+    <div class="sub">Start DIY, use the complete kit, or have the workflow built for you.</div>
+    <div class="options">
+      <div class="option">
+        <strong>Lead Recovery Playbook</strong>
+        <div class="price">$19</div>
+        <p>PDF playbook with response, qualification, follow-up, booking, and recovery framework.</p>
+        <a href="https://whop.com/ai-insiders-academy/the-5-minute-lead-recovery-playbook/" target="_blank" rel="noopener" style="text-decoration:none"><button class="secondary">Get the Playbook</button></a>
+      </div>
+      <div class="option">
+        <strong>Complete Starter Kit</strong>
+        <div class="price">$49</div>
+        <p>Playbook + copy/paste scripts + AI prompts + weekly recovery scorecard.</p>
+        <a href="https://whop.com/ai-insiders-academy/lead-recovery-complete-starter-kit/" target="_blank" rel="noopener" style="text-decoration:none"><button class="primary">Get the Complete Kit</button></a>
+      </div>
+      <div class="option">
+        <strong>Done-for-You System</strong>
+        <div class="price">from $650</div>
+        <p>AI lead follow-up, qualification, booking, CRM logging, notifications, and testing.</p>
+        <button class="secondary" onclick="copyInquiry('system')">Ask About Implementation</button>
+      </div>
+    </div>
+    <div class="copymsg" id="copymsg">Implementation inquiry copied — paste it into email, Fiverr, WhatsApp, or your preferred message channel.</div>
+  </section>
+
+  <footer>Plumbing Lead Loss Calculator · Scenario-based estimates only.</footer>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const fmt=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(n||0);
+const num=id=>Math.max(0,parseFloat($(id).value)||0);
+
+function sync(a,b){
+  $(a).addEventListener('input',()=>{$(b).value=$(a).value;calc()});
+  $(b).addEventListener('input',()=>{$(a).value=$(b).value;calc()});
+}
+sync('missed','missedRange'); sync('close','closeRange'); sync('recovery','recoveryRange');
+['leads','job','cpl'].forEach(id=>$(id).addEventListener('input',calc));
+
+function calc(){
+  const leads=num('leads'), missed=Math.min(100,num('missed'))/100;
+  const job=num('job'), close=Math.min(100,num('close'))/100;
+  const recovery=Math.min(100,num('recovery'))/100, cpl=num('cpl');
+
+  const atRisk=leads*missed;
+  const recovered=atRisk*recovery;
+  const recoveredJobs=recovered*close;
+  const monthly=recoveredJobs*job;
+  const annual=monthly*12;
+  const wasted=atRisk*cpl;
+
+  $('riskLeads').textContent=atRisk.toFixed(1);
+  $('recoveredLeads').textContent=recovered.toFixed(1);
+  $('jobs').textContent=recoveredJobs.toFixed(1);
+  $('waste').textContent=fmt(wasted);
+  $('monthly').textContent=fmt(monthly);
+  $('annual').textContent=fmt(annual);
+  $('bar').style.width=Math.min(100,Math.max(5,monthly/(Math.max(1,leads*job))*100*4))+'%';
+}
+function copyInquiry(type){
+  const monthly=$('monthly').textContent;
+  const texts={
+    playbook:`I used the Home Service Lead Loss Calculator and want the $19 Lead Recovery Playbook. My estimated monthly opportunity was ${monthly}.`,
+    kit:`I used the Home Service Lead Loss Calculator and want the $49 Complete Starter Kit. My estimated monthly opportunity was ${monthly}.`,
+    system:`I used the Home Service Lead Loss Calculator and want details about the done-for-you AI lead follow-up system starting at $650. My estimated monthly opportunity was ${monthly}.`
+  };
+  navigator.clipboard?.writeText(texts[type]).catch(()=>{});
+  $('copymsg').style.display='block';
+}
+calc();
+</script>
+</body>
+</html>
